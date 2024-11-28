@@ -2,29 +2,37 @@
   <q-dialog :model-value="props.modal" persistent>
     <q-card style="min-width: 350px">
       <q-card-section>
-        <div class="text-h6">Update Post</div>
+        <div class="text-h6">Create New User</div>
       </q-card-section>
+
       <q-card-section class="q-pt-none">
         <q-input
           dense
-          v-model:model-value="updatePostParameter.title"
-          label="Enter Your Title"
+          v-model:model-value="createUserParameter.username"
+          label="Enter Your User Name"
         />
       </q-card-section>
       <q-card-section class="q-pt-none">
         <q-input
-          type="textarea"
           dense
-          v-model:model-value="updatePostParameter.description"
-          label="Enter Your Description"
+          v-model:model-value="createUserParameter.email"
+          label="Enter Your E-Mail"
+        />
+      </q-card-section>
+      <q-card-section class="q-pt-none">
+        <q-input
+          type="password"
+          dense
+          v-model:model-value="createUserParameter.password"
+          label="Enter Your Password"
         />
       </q-card-section>
       <q-card-section class="q-pt-none">
         <q-file
           filled
           bottom-slots
-          v-model:model-value="updatePostParameter.image"
-          label="Post Image"
+          v-model:model-value="createUserParameter.avatar"
+          label="Avatar"
           counter
         >
           <template v-slot:prepend>
@@ -33,12 +41,20 @@
           <template v-slot:append>
             <q-icon
               name="close"
-              @click.stop.prevent="updatePostParameter.image = null"
+              @click.stop.prevent="createUserParameter.avatar = null"
               class="cursor-pointer"
             />
           </template>
+
           <template v-slot:hint> File Size </template>
         </q-file>
+      </q-card-section>
+      <q-card-section>
+        <q-select
+          v-model="createUserParameter.role"
+          :options="options"
+          label="Role"
+        />
       </q-card-section>
       <q-card-actions align="right" class="text-primary">
         <q-btn color="red" icon-right="close" label="Cancel" @click="close" />
@@ -54,32 +70,24 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref, watch } from 'vue';
+import { defineProps, defineEmits, ref } from 'vue';
 
 type ModalProps = { default: boolean };
-type PostData = { id: number, title: string, description: string };
 
 const props = defineProps({
-  modal: <ModalProps>{
-    default: false,
+  modal: {
+    default: <ModalProps>false,
   },
-  data: <PostData>{},
 });
 
-const updatePostParameter = ref({
-  id: <number>0,
-  title: <string>'',
-  description: <string>'',
-  image: <File>undefined,
-});
+const options = ref(['admin', 'user']);
 
-watch(props, () => {
-  updatePostParameter.value = {
-    id: props.data.id,
-    title: props.data.title,
-    description: props.data.description,
-    image: updatePostParameter.value.image,
-  };
+const createUserParameter = ref({
+  username: <string>'',
+  email: <string>'',
+  password: <string>'',
+  avatar: <File>undefined,
+  role: <string>'user',
 });
 
 const emit = defineEmits(['update:modal']);
@@ -87,14 +95,14 @@ const emit = defineEmits(['update:modal']);
 const close = () => {
   emit.call(this, 'update:modal', false);
 };
-
 const accepted = () => {
   console.log(
-    updatePostParameter.value.title,
-    updatePostParameter.value.description,
-    updatePostParameter.value.image
+    createUserParameter.value.username,
+    createUserParameter.value.email,
+    createUserParameter.value.password,
+    createUserParameter.value.avatar,
+    createUserParameter.value.role
   );
-
   emit.call(this, 'update:modal', false);
 };
 </script>
