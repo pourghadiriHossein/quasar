@@ -32,8 +32,10 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from 'src/stores/auth-store';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
 const loginParameter = ref({
   username: <string>'',
@@ -41,7 +43,21 @@ const loginParameter = ref({
 });
 
 const login = () => {
-  console.log(loginParameter.value);
+  authStore
+  .authenticate(
+    loginParameter.value.username,
+    loginParameter.value.password
+  )
+  .then(
+    () => {
+      router.replace({ name: 'index' });
+    },
+    (error) => {
+      console.log(
+        `No Internet, Connection Lost because server not serve!!!\n${error}`
+      );
+    }
+  );
 };
 const register = () => {
   router.replace({ name: 'register' });
