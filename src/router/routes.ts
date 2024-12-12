@@ -1,10 +1,20 @@
 import { RouteCallback } from '@quasar/app-vite';
 import { route } from 'quasar/wrappers';
+import { useAuthStore } from 'src/stores/auth-store';
 import { RouteRecordRaw, RouteRecordRedirectOption } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
+    beforeEnter(to, from, next) {
+      const auth = useAuthStore();
+      auth.import();
+      if (auth.isAuthorized) {
+        next({ name: 'index' });
+      } else {
+        next();
+      }
+    },
     component: () => import('layouts/auth/AuthLayout.vue'),
     redirect: <RouteRecordRedirectOption> route( <RouteCallback> {name:'login'}),
     children: [
@@ -22,6 +32,15 @@ const routes: RouteRecordRaw[] = [
   },
   {
     path: '/dashboard',
+    beforeEnter(to, from, next) {
+      const auth = useAuthStore();
+      auth.import();
+      if (auth.isAuthorized) {
+        next();
+      } else {
+        next({ name: 'login' });
+      }
+    },
     component: () => import('layouts/dashboard/DashboardLayout.vue'),
     redirect: <RouteRecordRedirectOption> route( <RouteCallback> {name:'index'}),
     children: [

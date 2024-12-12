@@ -76,7 +76,7 @@
           class="full-width"
           label="Update"
           color="light-blue-8"
-          @click="profileTemp.modal = true"
+          @click="profile.modal = true"
         />
         <q-btn
           class="full-width"
@@ -85,7 +85,7 @@
           @click="logout()"
         />
 
-        <q-dialog v-model="profileTemp.modal" persistent>
+        <q-dialog v-model="profile.modal" persistent>
           <q-card style="width: 350px">
             <q-card-section>
               <div class="text-h6">Update Profile</div>
@@ -94,27 +94,43 @@
             <q-card-section class="q-pt-none">
               <q-input
                 dense
-                v-model="profileTemp.username"
+                v-model="profile.username"
                 label="Your User Name"
+                ref="nameState"
+                :error="nameError.length > 0"
+                :error-message="nameError"
               />
             </q-card-section>
             <q-card-section class="q-pt-none">
-              <q-input dense v-model="profileTemp.email" label="Your E-Mail" />
+              <q-input
+                dense
+                v-model="profile.email"
+                label="Your E-Mail"
+                ref="emailState"
+                :error="emailError.length > 0"
+                :error-message="emailError"
+              />
             </q-card-section>
             <q-card-section class="q-pt-none">
               <q-input
-                v-model="profileTemp.password"
+                v-model="profile.password"
                 dense
                 label="Your Password"
+                ref="passwordState"
+                :error="passwordError.length > 0"
+                :error-message="passwordError"
               />
             </q-card-section>
             <q-card-section class="q-pt-none">
               <q-file
                 filled
                 bottom-slots
-                v-model="profileTemp.newAvatar"
+                v-model="profile.newAvatar"
                 label="Label"
                 counter
+                ref="avatarState"
+                :error="avatarError.length > 0"
+                :error-message="avatarError"
               >
                 <template v-slot:prepend>
                   <q-icon name="cloud_upload" @click.stop.prevent />
@@ -122,7 +138,7 @@
                 <template v-slot:append>
                   <q-icon
                     name="close"
-                    @click.stop.prevent="profileTemp.newAvatar = null"
+                    @click.stop.prevent="profile.newAvatar = null"
                     class="cursor-pointer"
                   />
                 </template>
@@ -147,18 +163,46 @@
 
 <script>
 import { ref } from 'vue';
-import { accessMenu } from 'src/components/ts/MenuComponent'
-import { profileTemp } from 'src/components/ts/ProfileComponent'
+import { accessMenu } from 'src/components/ts/MenuComponent';
+import { profileTemp, profile, userData } from 'components/ts/ProfileComponent';
+import { useAuthStore } from 'src/stores/auth-store';
+import { useRouter } from 'vue-router';
+import { User } from 'src/models/user';
 
 export default {
   setup() {
     const leftDrawerOpen = ref(false);
     const rightDrawerOpen = ref(false);
 
+    const authStore = useAuthStore();
+    const router = useRouter();
+
+    userData();
+    const nameError = ref('');
+    const emailError = ref('');
+    const passwordError = ref('');
+    const avatarError = ref('');
+
+    const nameState = ref(null);
+    const emailState = ref(null);
+    const passwordState = ref(null);
+    const avatarState = ref(null);
+
     return {
       leftDrawerOpen,
       accessMenu,
       profileTemp,
+      nameError,
+      emailError,
+      passwordError,
+      avatarError,
+
+      nameState,
+      emailState,
+      passwordState,
+      avatarState,
+
+      profile,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
@@ -168,11 +212,44 @@ export default {
         rightDrawerOpen.value = !rightDrawerOpen.value;
       },
       update() {
-        console.log('update');
-        profileTemp.value.modal = !profileTemp.value.modal;
+        User.updateProfile(
+          profile.value.id,
+          profile.value.username,
+          profile.value.email,
+          profile.value.password,
+          profile.value.newAvatar
+        ).then(
+          (response) => {
+            if (response.status == 200) {
+              userData();
+              profile.value.modal = !profile.value.modal;
+            }
+          },
+          (reject) => {
+            if (reject.response.status != 200) {
+              if (reject.response.data.errors) {
+                nameError.value =
+                  reject.response.data.errors?.name?.toString() ?? '';
+                emailError.value =
+                  reject.response.data.errors?.email?.toString() ?? '';
+                passwordError.value =
+                  reject.response.data.errors?.password?.toString() ?? '';
+                avatarError.value =
+                  reject.response.data.errors?.avatar?.toString() ?? '';
+                setTimeout(() => {
+                  nameError.value = '';
+                  emailError.value = '';
+                  passwordError.value = '';
+                  avatarError.value = '';
+                }, 5000);
+              }
+            }
+          }
+        );
       },
       logout() {
-        console.log('logout');
+        authStore.logout();
+        router.replace({ name: 'login' });
       },
     };
   },
