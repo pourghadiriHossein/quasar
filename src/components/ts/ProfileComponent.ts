@@ -36,8 +36,8 @@ const userData = () => {
       profile.value.avatar = General.serverRoute + response.data.user.media[0]?.url;
       profileTemp.value.avatar = General.serverRoute + response.data.user.media[0]?.url;
     }
-    profile.value.role = response.data.user.roles[0].name;
-    profileTemp.value.role = response.data.user.roles[0].name;
+    profile.value.role = response.data.user.roles[0]?.name;
+    profileTemp.value.role = response.data.user.roles[0]?.name;
   });
 };
 

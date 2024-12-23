@@ -1,7 +1,7 @@
 <template>
   <q-layout view="hHh LpR fFf">
     <div class="dashboard-background"></div>
-    <q-header elevated class="bg-dark text-white">
+    <q-header elevated :class="`navbar-bg text-white`">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
 
@@ -11,7 +11,8 @@
           </q-avatar>
           Open World
         </q-toolbar-title>
-
+        <q-select v-model="navbar" :options="navbarOptions" />
+        <q-toggle v-model="siteModeSate" :icon="mdiWeatherNight" />
         <q-btn dense flat round icon="menu" @click="toggleRightDrawer" />
       </q-toolbar>
     </q-header>
@@ -162,12 +163,14 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 import { accessMenu } from 'src/components/ts/MenuComponent';
 import { profileTemp, profile, userData } from 'components/ts/ProfileComponent';
 import { useAuthStore } from 'src/stores/auth-store';
 import { useRouter } from 'vue-router';
 import { User } from 'src/models/user';
+import { useQuasar } from 'quasar';
+import { mdiWeatherNight } from '@quasar/extras/mdi-v7';
 
 export default {
   setup() {
@@ -187,11 +190,19 @@ export default {
     const emailState = ref(null);
     const passwordState = ref(null);
     const avatarState = ref(null);
-
+    const siteMode = useQuasar();
+    const siteModeSate = ref(false);
+    watch(siteModeSate, () => {
+      let mode = siteMode.dark.mode;
+      siteMode.dark.set(!mode);
+    });
+    const navbar = ref('black');
+    const navbarOptions = ref(['black', 'white', 'green', 'orange']);
     return {
       leftDrawerOpen,
       accessMenu,
       profileTemp,
+
       nameError,
       emailError,
       passwordError,
@@ -203,6 +214,10 @@ export default {
       avatarState,
 
       profile,
+      siteModeSate,
+      mdiWeatherNight,
+      navbar,
+      navbarOptions,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
       },
@@ -255,3 +270,18 @@ export default {
   },
 };
 </script>
+<style>
+@keyframes change-color {
+  from {
+    background-color: v-bind(navbar);
+    opacity: 0.2;
+  }
+  to {
+    background-color: v-bind(navbar);
+    opacity: 1;
+  }
+}
+.navbar-bg {
+  animation: change-color 1s alternate infinite ease;
+}
+</style>
